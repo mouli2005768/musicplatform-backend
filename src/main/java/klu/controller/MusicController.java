@@ -71,7 +71,7 @@ public class MusicController {
         Files.write(path, file.getBytes());
 
         // Generate public URL
-        String songUrl = "http://localhost:8080/musicspring/songs/" + fileName;
+        String songUrl = "http://localhost:8081/songs/" + fileName;
 
         // Save song in DB
         Song song = new Song();

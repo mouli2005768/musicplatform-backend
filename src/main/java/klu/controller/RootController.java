@@ -13,7 +13,7 @@ import klu.modal.User;
 import klu.modal.UserManager;
 
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/user")
 @CrossOrigin(origins = "*")
 public class RootController {
 
