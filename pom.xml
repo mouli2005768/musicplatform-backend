@@ -102,7 +102,8 @@
     <!-- Build Configuration -->
     <build>
         <!-- 👇 This forces WAR name to be musicspring.war -->
-        <finalName>musicspring</finalName>
+        <finalName>ROOT</finalName>
+
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
