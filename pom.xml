@@ -102,7 +102,7 @@
     <!-- Build Configuration -->
     <build>
         <!-- 👇 This forces WAR name to be musicspring.war -->
-        <finalName>ROOT</finalName>
+        <finalName>api</finalName>
 
         <plugins>
             <plugin>
