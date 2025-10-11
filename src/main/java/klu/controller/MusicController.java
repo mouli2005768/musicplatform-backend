@@ -7,6 +7,7 @@ import klu.repository.SongRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,7 +17,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "http://localhost:5173", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
+@CrossOrigin(
+        origins = {"http://localhost:5173", "http://localhost:8080"},
+        methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE}
+)
 public class MusicController {
 
     @Autowired
@@ -25,55 +29,70 @@ public class MusicController {
     @Autowired
     private AlbumRepository albumRepository;
 
-    // ✅ Add Album
+    private final String UPLOAD_DIR = "uploads";
+
+    // ================= ALBUMS =================
     @PostMapping("/albums")
     public Album addAlbum(@RequestBody Album album) {
         return albumRepository.save(album);
     }
 
-    // ✅ Get Albums
     @GetMapping("/albums")
     public List<Album> getAlbums() {
         return albumRepository.findAll();
     }
 
-    // ✅ Delete Album
     @DeleteMapping("/albums/{id}")
     public void deleteAlbum(@PathVariable Long id) {
         albumRepository.deleteById(id);
     }
 
-    // ✅ Add Song (JSON way - keep it)
+    // ================= SONGS =================
     @PostMapping("/songs")
     public Song addSong(@RequestBody Song song) {
+        if (song.getImageUrl() == null || song.getImageUrl().isEmpty()) {
+            song.setImageUrl(getBaseUrl() + "/images/default.png");
+        }
         return songRepository.save(song);
     }
 
-    // ✅ Delete Song
     @DeleteMapping("/songs/{id}")
     public void deleteSong(@PathVariable Long id) {
         songRepository.deleteById(id);
     }
 
-    // ✅ Upload Song File
+    // Upload audio + optional image
     @PostMapping("/songs/upload")
     public Song uploadSong(
             @RequestParam("file") MultipartFile file,
+            @RequestParam(required = false) MultipartFile image,
             @RequestParam String name,
-            @RequestParam(required = false) String description,
-            @RequestParam(required = false) String imageUrl
+            @RequestParam(required = false) String description
     ) throws IOException {
 
-        // Save file inside target/classes/static/songs/
-        String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-        Path path = Paths.get("target/classes/static/songs/" + fileName);
-        Files.createDirectories(path.getParent()); // ensure folder exists
-        Files.write(path, file.getBytes());
+        // ----------------- Save audio -----------------
+        String audioFileName = System.currentTimeMillis() + "_" +
+                file.getOriginalFilename().replaceAll("[^a-zA-Z0-9._-]", "_");
+        Path audioPath = Paths.get(UPLOAD_DIR + "/songs/" + audioFileName);
+        Files.createDirectories(audioPath.getParent());
+        Files.write(audioPath, file.getBytes());
+        String songUrl = getBaseUrl() + "/songs/" + audioFileName;
 
-        // Generate public URL
-        String songUrl = "http://localhost:8081/songs/" + fileName;
+        // ----------------- Save image -----------------
+        String imageUrl;
+        if (image != null && !image.isEmpty()) {
+            String imageFileName = System.currentTimeMillis() + "_" +
+                    image.getOriginalFilename().replaceAll("[^a-zA-Z0-9._-]", "_");
+            Path imagePath = Paths.get(UPLOAD_DIR + "/images/" + imageFileName);
+            Files.createDirectories(imagePath.getParent());
+            Files.write(imagePath, image.getBytes());
+            imageUrl = getBaseUrl() + "/images/" + imageFileName;
+        } else {
+            // Fallback default image
+            imageUrl = getBaseUrl() + "/images/default.png";
+        }
 
-        // Save song in DB
+        // ----------------- Save to DB -----------------
         Song song = new Song();
         song.setName(name);
         song.setDescription(description);
@@ -83,9 +102,19 @@ public class MusicController {
         return songRepository.save(song);
     }
 
-    // ✅ Get Songs
     @GetMapping("/songs")
     public List<Song> getSongs() {
-        return songRepository.findAll();
+        List<Song> songs = songRepository.findAll();
+        for (Song s : songs) {
+            if (s.getImageUrl() == null || s.getImageUrl().isEmpty()) {
+                s.setImageUrl(getBaseUrl() + "/images/default.png");
+            }
+        }
+        return songs;
+    }
+
+    // ----------------- Helper -----------------
+    private String getBaseUrl() {
+        return ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
     }
 }
