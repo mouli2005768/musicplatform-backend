@@ -24,7 +24,7 @@ public class CorsConfig {
                         )
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*");
-
+                
                 // ✅ Allow static song files
                 registry.addMapping("/songs/**")
                         .allowedOrigins("http://localhost:5173")

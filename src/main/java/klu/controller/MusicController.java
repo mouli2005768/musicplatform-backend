@@ -1,8 +1,10 @@
 package klu.controller;
 
 import klu.modal.Album;
+
 import klu.modal.Song;
 import klu.repository.AlbumRepository;
+
 import klu.repository.SongRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +18,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/")
 @CrossOrigin(
         origins = {"http://localhost:5173", "http://localhost:8080"},
         methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE}
@@ -30,22 +32,10 @@ public class MusicController {
     private AlbumRepository albumRepository;
 
     private final String UPLOAD_DIR = "uploads";
+    
+    
 
-    // ================= ALBUMS =================
-    @PostMapping("/albums")
-    public Album addAlbum(@RequestBody Album album) {
-        return albumRepository.save(album);
-    }
-
-    @GetMapping("/albums")
-    public List<Album> getAlbums() {
-        return albumRepository.findAll();
-    }
-
-    @DeleteMapping("/albums/{id}")
-    public void deleteAlbum(@PathVariable Long id) {
-        albumRepository.deleteById(id);
-    }
+    
 
     // ================= SONGS =================
     @PostMapping("/songs")
@@ -53,9 +43,11 @@ public class MusicController {
         if (song.getImageUrl() == null || song.getImageUrl().isEmpty()) {
             song.setImageUrl(getBaseUrl() + "/images/default.png");
         }
+
+       
+
         return songRepository.save(song);
     }
-
     @DeleteMapping("/songs/{id}")
     public void deleteSong(@PathVariable Long id) {
         songRepository.deleteById(id);
